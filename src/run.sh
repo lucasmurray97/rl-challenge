@@ -1,6 +1,6 @@
 #!/bin/bash
 # Parameters for grid search
-lrs=(1e-3)
+lrs=(1e-3 1e-4)
 gammas=(0.95 0.99)
 hidden_dims=(64 256 512)
 update_target_freqs=(400)
