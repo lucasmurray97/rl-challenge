@@ -4,7 +4,7 @@ from functools import partial
 from evaluate import evaluate_HIV, evaluate_HIV_population
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor
-from xgboost import XGBRegressor, Booster
+from xgboost import XGBRegressor
 from tqdm import tqdm
 import torch
 import torch.nn as nn
@@ -127,8 +127,7 @@ class ForestAgent:
         pass
 
     def load(self):
-        booster = Booster()
-        self.model = booster.load_model("./models/Q.json")
+        self.model.load_model("./models/Q.json")
         pass
 
 class ReplayBuffer:
