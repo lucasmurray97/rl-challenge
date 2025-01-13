@@ -127,7 +127,7 @@ class ForestAgent:
         pass
 
     def load(self):
-        # self.model.load_model(f"./models/Q{self.config_str}.json")
+        self.model.load_model(f"./models/Q{self.config_str}.json")
         pass
 
 class ReplayBuffer:
