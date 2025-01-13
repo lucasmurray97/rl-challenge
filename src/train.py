@@ -39,10 +39,10 @@ class ForestAgent:
     def __init__(self, config, env):
         self.config = config
         self.env = env
-        self.model = self.train(self.config["num_samples"], self.config["max_episode"], self.config["gamma"], disable_tqdm=False)
         self.indiv_env = TimeLimit(HIVPatient(domain_randomization=False), max_episode_steps=200)
         self.random_env = TimeLimit(HIVPatient(domain_randomization=True), max_episode_steps=200)
         self.config_str = ''.join(f'_{value}' for key, value in config.items())
+        self.model = self.train(self.config["num_samples"], self.config["max_episode"], self.config["gamma"], disable_tqdm=False)
     def collect_samples(self, horizon, disable_tqdm=False, print_done_states=False):
         s, _ = self.env.reset()
         #dataset = []
@@ -99,10 +99,10 @@ class ForestAgent:
                 random_eval = evaluate_HIV_population(agent=self, nb_episode=20)
                 if indiv_test <= indiv_eval:
                     indiv_test = indiv_eval
-                    Q.save_model(f"./models/Q.json")
+                    Q.save_model(f"./models/Q{self.config_str}.json")
                 elif indiv_test == indiv_eval and random_test <= random_eval:
                     random_test = random_eval
-                    Q.save_model(f"./models/Q.json")
+                    Q.save_model(f"./models/Q{self.config_str}.json")
         return Qfunctions
     
     def train(self, horizon, iterations, gamma, disable_tqdm=False, print_done_states=False):
@@ -127,7 +127,7 @@ class ForestAgent:
         pass
 
     def load(self):
-        self.model.load_model("./models/Q.json")
+        # self.model.load_model(f"./models/Q{self.config_str}.json")
         pass
 
 class ReplayBuffer:
