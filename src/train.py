@@ -2,6 +2,7 @@ from gymnasium.wrappers import TimeLimit
 from env_hiv_ import FastHIVPatient as HIVPatient
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor
+from xgboost import XGBRegressor
 from tqdm import tqdm
 import torch
 import torch.nn as nn
@@ -10,10 +11,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from copy import deepcopy
 
-env = TimeLimit(
-    env=HIVPatient(domain_randomization=False), max_episode_steps=200
-)  # The time wrapper limits the number of steps in an episode at 200.
-# Now is the floor is yours to implement the agent and train it.
+# env = TimeLimit(
+#     env=HIVPatient(domain_randomization=True), max_episode_steps=200
+# )  # The time wrapper limits the number of steps in an episode at 200.
+# # Now is the floor is yours to implement the agent and train it.
 
 
 # You have to implement your own agent.
@@ -33,11 +34,13 @@ class VanillaAgent:
 
 class ForestAgent:
     
-    def __init__(self):
-        self.model = self.train(100000, 100, 0.9, disable_tqdm=False)
-    
+    def __init__(self, config, env):
+        self.config = config
+        self.env = env
+        self.model = self.train(self.config["num_samples"], self.config["max_episode"], self.config["gamma"], disable_tqdm=False)
+
     def collect_samples(self, horizon, disable_tqdm=False, print_done_states=False):
-        s, _ = env.reset()
+        s, _ = self.env.reset()
         #dataset = []
         S = []
         A = []
@@ -45,8 +48,8 @@ class ForestAgent:
         S2 = []
         D = []
         for _ in tqdm(range(horizon), disable=disable_tqdm):
-            a = env.action_space.sample()
-            s2, r, done, trunc, _ = env.step(a)
+            a = self.env.action_space.sample()
+            s2, r, done, trunc, _ = self.env.step(a)
             #dataset.append((s,a,r,s2,done,trunc))
             S.append(s)
             A.append(a)
@@ -54,7 +57,7 @@ class ForestAgent:
             S2.append(s2)
             D.append(done)
             if done or trunc:
-                s, _ = env.reset()
+                s, _ = self.env.reset()
                 if done and print_done_states:
                     print("done!")
             else:
@@ -81,23 +84,23 @@ class ForestAgent:
                     Q2[:,a2] = Qfunctions[-1].predict(S2A2)
                 max_Q2 = np.max(Q2,axis=1)
                 value = R + gamma*(1-D)*max_Q2
-            Q = ExtraTreesRegressor(n_estimators=50, min_samples_split=2)
+            Q = XGBRegressor(n_estimators=self.config["n_estim"], max_depth=self.config["max_depth"])
             Q.fit(SA,value)
             Qfunctions.append(Q)
         return Qfunctions
     
     def train(self, horizon, iterations, gamma, disable_tqdm=False, print_done_states=False):
         S, A, R, S2, D = self.collect_samples(horizon, disable_tqdm, print_done_states)
-        self.Qfunctions = self.rf_fqi(S, A, R, S2, D, iterations, env.action_space.n, gamma, disable_tqdm)
+        self.Qfunctions = self.rf_fqi(S, A, R, S2, D, iterations, self.env.action_space.n, gamma, disable_tqdm)
         return self.Qfunctions[-1]
 
 
     def act(self, observation, use_random=False):
         if use_random:
-            return env.action_space.sample()
+            return self.env.action_space.sample()
         else:
-            Q = np.zeros(env.action_space.n)
-            for a in range(env.action_space.n):
+            Q = np.zeros(self.env.action_space.n)
+            for a in range(self.env.action_space.n):
                 obs =  np.expand_dims(observation, axis=0)
                 act =  np.array([[a]])
                 SA = np.append(obs,act,axis=1)
