@@ -41,13 +41,13 @@ if __name__ == "__main__":
     # New arguments for network architecture
     # parser.add_argument('--n_layers', type=int, default=6, help='Number of hidden layers in the neural network')
     # parser.add_argument('--hidden_dim', type=int, default=128, help='Number of neurons in each hidden layer')
-    parser.add_argument('--max_episode', type=int, default=500, help='Maximum number of episodes for training')
+    parser.add_argument('--max_episode', type=int, default=10, help='Maximum number of episodes for training')
     # parser.add_argument('--update_target_freq', type=int, default=100,
                         # help='Frequency (in steps) of hard target network updates (only used if strategy is "hard")')
-    parser.add_argument('--num_samples', type=int, default=100000, help='Number of samples to evaluate the agent')
+    parser.add_argument('--num_samples', type=int, default=1000, help='Number of samples to evaluate the agent')
     parser.add_argument('--n_estim', type=int, default=100, help='Number of trees in the forest')
     parser.add_argument('--max_depth', type=int, default=10, help='Maximum depth of the trees in the forest')
-    parser.add_argument('--env', type=bool, default=False, help='Environment to train the agent on')
+    parser.add_argument("--env", type=lambda x: x.lower() == 'true', help="Environment flag")
     args = parser.parse_args()
 
     # Create a configuration dictionary from parsed arguments
@@ -81,5 +81,5 @@ if __name__ == "__main__":
     # Evaluate agent and write score.
     score_agent: float = evaluate_HIV(agent=agent, nb_episode=5)
     score_agent_dr: float = evaluate_HIV_population(agent=agent, nb_episode=20)
-    with open(file="score" + config_str + ".txt", mode="w") as f:
+    with open(file="scores/score" + config_str + ".txt", mode="w") as f:
         f.write(f"{score_agent}\n{score_agent_dr}")

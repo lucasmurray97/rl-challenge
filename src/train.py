@@ -1,5 +1,7 @@
 from gymnasium.wrappers import TimeLimit
 from env_hiv_ import FastHIVPatient as HIVPatient
+from functools import partial
+from evaluate import evaluate_HIV, evaluate_HIV_population
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor
 from xgboost import XGBRegressor
@@ -38,7 +40,9 @@ class ForestAgent:
         self.config = config
         self.env = env
         self.model = self.train(self.config["num_samples"], self.config["max_episode"], self.config["gamma"], disable_tqdm=False)
-
+        self.indiv_env = TimeLimit(HIVPatient(domain_randomization=False), max_episode_steps=200)
+        self.random_env = TimeLimit(HIVPatient(domain_randomization=True), max_episode_steps=200)
+        self.config_str = ''.join(f'_{value}' for key, value in config.items())
     def collect_samples(self, horizon, disable_tqdm=False, print_done_states=False):
         s, _ = self.env.reset()
         #dataset = []
@@ -72,6 +76,8 @@ class ForestAgent:
     def rf_fqi(self, S, A, R, S2, D, iterations, nb_actions, gamma, disable_tqdm=False):
         nb_samples = S.shape[0]
         Qfunctions = []
+        indiv_test = 0
+        random_test = 0
         SA = np.append(S,A,axis=1)
         for iter in tqdm(range(iterations), disable=disable_tqdm):
             if iter==0:
@@ -86,7 +92,17 @@ class ForestAgent:
                 value = R + gamma*(1-D)*max_Q2
             Q = XGBRegressor(n_estimators=self.config["n_estim"], max_depth=self.config["max_depth"])
             Q.fit(SA,value)
+            self.model = Q
             Qfunctions.append(Q)
+            if iter % 10 == 0:
+                indiv_eval = evaluate_HIV(agent=self, nb_episode=5)
+                random_eval = evaluate_HIV_population(agent=self, nb_episode=20)
+                if indiv_test <= indiv_eval:
+                    indiv_test = indiv_eval
+                    Q.save_model(f"./models/Q.json")
+                elif indiv_test == indiv_eval and random_test <= random_eval:
+                    random_test = random_eval
+                    Q.save_model(f"./models/Q.json")
         return Qfunctions
     
     def train(self, horizon, iterations, gamma, disable_tqdm=False, print_done_states=False):
@@ -111,6 +127,7 @@ class ForestAgent:
         pass
 
     def load(self):
+        self.model.load_model("./models/Q.json")
         pass
 
 class ReplayBuffer:
