@@ -124,13 +124,13 @@ class ForestAgent:
             return np.argmax(Q)
 
     def save(self, path="./models/Q.pkl"):
-        path = f".models/Q_{self.config_str}.pkl"
+        path = f"./models/Q_{self.config_str}.pkl"
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, 'wb') as f:
             pickle.dump(self.model, f)
 
     def load(self, path="./models/Q.pkl"):
-        path = f".models/Q_{self.config_str}.pkl"
+        path = f"./models/Q_{self.config_str}.pkl"
         if os.path.exists(path):
             with open(path, 'rb') as f:
                 self.model = pickle.load(f)
