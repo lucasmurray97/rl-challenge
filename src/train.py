@@ -42,7 +42,8 @@ class ForestAgent:
         self.indiv_env = TimeLimit(HIVPatient(domain_randomization=False), max_episode_steps=200)
         self.random_env = TimeLimit(HIVPatient(domain_randomization=True), max_episode_steps=200)
         self.config_str = ''.join(f'_{value}' for key, value in config.items())
-        self.model = self.train(self.config["num_samples"], self.config["max_episode"], self.config["gamma"], disable_tqdm=False)
+        print(self.config_str)
+        #self.model = self.train(self.config["num_samples"], self.config["max_episode"], self.config["gamma"], disable_tqdm=False)
     def collect_samples(self, horizon, disable_tqdm=False, print_done_states=False):
         s, _ = self.env.reset()
         #dataset = []
@@ -127,6 +128,7 @@ class ForestAgent:
         pass
 
     def load(self):
+        self.model = XGBRegressor()
         self.model.load_model(f"./models/Q{self.config_str}.json")
         pass
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 # Parameters for grid search
-num_samples=(500000 100000)
-max_episodes=(200)
+num_samples=(500 100000)
+max_episodes=(2)
 gammas=(0.95 0.99)
 n_estimators=(100 200)
 max_depths=(10 12)
