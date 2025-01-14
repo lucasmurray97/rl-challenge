@@ -12,6 +12,8 @@ import random
 import numpy as np
 import matplotlib.pyplot as plt
 from copy import deepcopy
+import os
+import pickle
 
 # env = TimeLimit(
 #     env=HIVPatient(domain_randomization=True), max_episode_steps=200
@@ -43,7 +45,7 @@ class ForestAgent:
         self.random_env = TimeLimit(HIVPatient(domain_randomization=True), max_episode_steps=200)
         self.config_str = ''.join(f'_{value}' for key, value in config.items())
         print(self.config_str)
-        #self.model = self.train(self.config["num_samples"], self.config["max_episode"], self.config["gamma"], disable_tqdm=False)
+        self.model = self.train(self.config["num_samples"], self.config["max_episode"], self.config["gamma"], disable_tqdm=False)
     def collect_samples(self, horizon, disable_tqdm=False, print_done_states=False):
         s, _ = self.env.reset()
         #dataset = []
@@ -100,10 +102,10 @@ class ForestAgent:
                 random_eval = evaluate_HIV_population(agent=self, nb_episode=20)
                 if indiv_test <= indiv_eval:
                     indiv_test = indiv_eval
-                    Q.save_model(f"./models/Q{self.config_str}.json")
+                    self.save()
                 elif indiv_test == indiv_eval and random_test <= random_eval:
                     random_test = random_eval
-                    Q.save_model(f"./models/Q{self.config_str}.json")
+                    self.save()
         return Qfunctions
     
     def train(self, horizon, iterations, gamma, disable_tqdm=False, print_done_states=False):
@@ -124,13 +126,21 @@ class ForestAgent:
                 Q[a] = self.model.predict(SA)
             return np.argmax(Q)
 
-    def save(self, path):
-        pass
+    def save(self, path="./models/Q.pkl"):
+        path = f".models/Q_{self.config_str}.pkl"
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, 'wb') as f:
+            pickle.dump(self.model, f)
 
-    def load(self):
-        self.model = XGBRegressor()
-        self.model.load_model(f"./models/Q{self.config_str}.json")
-        pass
+    def load(self, path="./models/Q.pkl"):
+        path = f".models/Q_{self.config_str}.pkl"
+        if os.path.exists(path):
+            with open(path, 'rb') as f:
+                self.model = pickle.load(f)
+            print(f"Model loaded from {path}")
+        else:
+            print(f"No model found at {path}. Training a new model.")
+            self.model = None
 
 class ReplayBuffer:
     def __init__(self, capacity, device):
