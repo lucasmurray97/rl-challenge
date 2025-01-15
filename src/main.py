@@ -2,11 +2,11 @@ import random
 import os
 from pathlib import Path
 import numpy as np
-import torch
 import argparse
+import torch
 
 from evaluate import evaluate_HIV, evaluate_HIV_population
-from train import VanillaAgent, ForestAgent, DQNAgent  # Replace DummyAgent with your agent implementation
+from train import VanillaAgent, ForestAgent  # Replace DummyAgent with your agent implementation
 from env_hiv_ import FastHIVPatient as HIVPatient
 from gymnasium.wrappers import TimeLimit
 
@@ -28,7 +28,7 @@ if __name__ == "__main__":
 
     # Add arguments for DQN configuration
     # parser.add_argument('--lr', type=float, default=0.0001, help='Learning rate for the optimizer')
-    parser.add_argument('--gamma', type=float, default=0.95, help='Discount factor for future rewards')
+    # parser.add_argument('--gamma', type=float, default=0.95, help='Discount factor for future rewards')
     # parser.add_argument('--buffer_size', type=int, default=10000, help='Replay buffer size')
     # parser.add_argument('--epsilon_min', type=float, default=0.995, help='Minimum epsilon for exploration')
     # parser.add_argument('--epsilon_max', type=float, default=1.0, help='Maximum epsilon for exploration')
@@ -45,15 +45,15 @@ if __name__ == "__main__":
     # parser.add_argument('--update_target_freq', type=int, default=100,
                         # help='Frequency (in steps) of hard target network updates (only used if strategy is "hard")')
     parser.add_argument('--num_samples', type=int, default=1000, help='Number of samples to evaluate the agent')
-    parser.add_argument('--n_estim', type=int, default=100, help='Number of trees in the forest')
-    parser.add_argument('--max_depth', type=int, default=10, help='Maximum depth of the trees in the forest')
+    # parser.add_argument('--n_estim', type=int, default=100, help='Number of trees in the forest')
+    # parser.add_argument('--max_depth', type=int, default=10, help='Maximum depth of the trees in the forest')
     parser.add_argument("--env", type=lambda x: x.lower() == 'true', help="Environment flag")
     args = parser.parse_args()
 
     # Create a configuration dictionary from parsed arguments
     config = {
         # 'learning_rate': args.lr,
-        'gamma': args.gamma,
+        # 'gamma': args.gamma,
         # 'buffer_size': args.buffer_size,
         # 'epsilon_min': args.epsilon_min,
         # 'epsilon_max': args.epsilon_max,
@@ -67,8 +67,8 @@ if __name__ == "__main__":
         # 'gradient_steps': args.gradient_steps,
         # 'pre_fill_buffer': args.pre_fill_buffer,
         'num_samples': args.num_samples,
-        "n_estim": args.n_estim,
-        "max_depth": args.max_depth,
+        # "n_estim": args.n_estim,
+        # "max_depth": args.max_depth,
         'env': args.env
     }
     config_str = ' '.join(f'_{value}' for key, value in config.items())
